@@ -5,7 +5,7 @@
 #include "functions2d.h"
 
 static int row = 300, col = 300, tmax = 15, radius = 10, centreX, centreY;
-static double vm=1, k=10, lambdal=0.001,lambdaf=0.005, betam=0.01,  dt=0.00005,/*dt = 0.000005,*/ dx = 0.5, temporaryValueFree, temporaryValueLinked, tempProteins, M=1, lambdap=0.001, alpha=0.01;
+static double vm=1, k=10, lambdal=0.001,lambdaf=0.005, betam=0.01,  dt=0.000005,/*dt = 0.000005,*/ dx = 0.5, temporaryValueFree, temporaryValueLinked, tempProteins, M=1, lambdap=0.001, alpha=0.01;
 static char filename[100];
 
 void mtubeFormation(double ** mtube){
@@ -358,7 +358,7 @@ int main(int argc, char * argv[]){
 
   /*INITIALIZING TIME AND INTEGRATION-----------------------------------------------------------------------------------------------------------------------------*/
   for (t=0.0 ; t<(tmax); t=t+dt){
-    if ((int)(t/dt)%50000==0 ){ // 500000 for dt=0.000005
+    if ((int)(t/dt)%500000==0 ){ // 500000 for dt=0.000005
       snprintf(name, sizeof(char) * 32, "%s_mfree_%d", filename,m);
       FILE *f = fopen(name, "w");
       printingWorld(f, col, row, mfree);
