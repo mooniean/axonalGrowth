@@ -4,8 +4,8 @@
 #include <string.h>
 #include "functions2d.h"
 
-static int row = 300, col = 300, tmax = 15, radius = 10;
-static double vm=1, k=10, lambdal=0.001,lambdaf=0.005, betam=0.01,  dt=0.0005,/*dt = 0.000005,*/ dx = 0.5, temporaryValueFree, temporaryValueLinked, tempProteins, M=1, lambdap=0.001, alpha=0.01;
+static int row = 300, col = 300, tmax = 15, radius = 10, centreX, centreY;
+static double vm=1, k=10, lambdal=0.001,lambdaf=0.005, betam=0.01,  dt=0.00005,/*dt = 0.000005,*/ dx = 0.5, temporaryValueFree, temporaryValueLinked, tempProteins, M=1, lambdap=0.001, alpha=0.01;
 static char filename[100];
 
 void mtubeFormation(double ** mtube){
@@ -243,11 +243,11 @@ int main(int argc, char * argv[]){
   int i,j, m=0, concflag=0; char name[32]; double t, threshold = pow(10,-8), temp,concentration; 
 
   strcpy(filename, argv[1]);
-  row = argv[2];
-  col = argv[3];
-  radius = argv[4];
-  centreX = argv[5];
-  centreY = argv[6];
+  row = atoi(argv[2]);
+  col = atoi(argv[3]);
+  radius = atoi(argv[4]);
+  centreX = atoi(argv[5]);
+  centreY = atoi(argv[6]);
 
   double ** mtube   	  = initMatrix(row,col); // Microtubules
   double ** vectorx 	  = initMatrix(row,col); // X Component of Microtubule Vector
@@ -358,7 +358,7 @@ int main(int argc, char * argv[]){
 
   /*INITIALIZING TIME AND INTEGRATION-----------------------------------------------------------------------------------------------------------------------------*/
   for (t=0.0 ; t<(tmax); t=t+dt){
-    if ((int)(t/dt)%5000==0 ){ // 500000 for dt=0.000005
+    if ((int)(t/dt)%50000==0 ){ // 500000 for dt=0.000005
       snprintf(name, sizeof(char) * 32, "%s_mfree_%d", filename,m);
       FILE *f = fopen(name, "w");
       printingWorld(f, col, row, mfree);

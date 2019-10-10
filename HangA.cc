@@ -16,7 +16,7 @@ using namespace std;
 
 const int Lx=300, Ly=300;
 static const int Arteria=40; // initial artery width
-static const int centreX=Lx/2, centreY=Ly-(Arteria+5);
+static const int centreY=Ly/2, centreX=(Arteria+5);
 static const int Nprint=1000; // printing interval
 static const double dt=0.001, tmax=50.001;  // integration step and final time
 static const double Tang=100000; // tempo para ligar Ang2
