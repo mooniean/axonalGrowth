@@ -308,9 +308,10 @@ int main(int argc, char * argv[]){
   //   	}
   FILE *new = fopen("mfreephi_final","r");
   if (new == NULL){
-    for (i=120; i<180; i++){
-      for (j=120; j<180; j++){
-        if (((i-row*0.5)*(i-row*0.5)+(j-col*0.5)*(j-col*0.5))<radius*radius){
+    for (i=(centreX-30); i<(centreX+30); i++){
+      for (j=(centreY-30); j<(centreY+30); j++){
+        //if (((i-row*0.5)*(i-row*0.5)+(j-col*0.5)*(j-col*0.5))<radius*radius){
+        if (((i-centreX)*(i-centreX)+(j-centreY)*(j-centreY))<radius*radius){
           mfree[i][j]=1;
         }
       }
@@ -318,14 +319,14 @@ int main(int argc, char * argv[]){
   }
   else{
     for (j=0; j<row; j++){
-      for (i=0; i<(col); i++){
+      for (i=0; i<col; i++){
         fscanf(new, "%lf",&temp);
         oldmfreePhi[i][j]=temp;
       }
     }
     // Calcular a condição inicial do mfree
     for (j=0; j<row; j++){
-      for (i=0; i<(col); i++){
+      for (i=0; i<col; i++){
         if (phi[i][j] > threshold){
           mfree[i][j]=oldmfreePhi[i][j]/phi[i][j];
         }
