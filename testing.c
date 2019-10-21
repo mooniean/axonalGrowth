@@ -308,10 +308,10 @@ int main(int argc, char * argv[]){
   //   	}
   FILE *new = fopen("mfreephi_final","r");
   if (new == NULL){
-    for (i=(centreX-30); i<(centreX+30); i++){
-      for (j=(centreY-30); j<(centreY+30); j++){
+    for (i=(centreY-30); i<(centreY+30); i++){
+      for (j=(centreX-30); j<(centreX+30); j++){
         //if (((i-row*0.5)*(i-row*0.5)+(j-col*0.5)*(j-col*0.5))<radius*radius){
-        if (((i-centreX)*(i-centreX)+(j-centreY)*(j-centreY))<radius*radius){
+        if (((i-centreY)*(i-centreY)+(j-centreX)*(j-centreX))<radius*radius){
           mfree[i][j]=1;
         }
       }
