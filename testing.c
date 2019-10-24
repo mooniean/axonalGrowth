@@ -406,9 +406,10 @@ int main(int argc, char * argv[]){
         // if ( i>=xMinC && i<xMaxC && j>=yMinC && j<yMaxC ){
         // 	continue;
         // }
-          if (((i-row*0.5)*(i-row*0.5)+(j-col*0.5)*(j-col*0.5))<radius*radius){
+          //if (((i-row*0.5)*(i-row*0.5)+(j-col*0.5)*(j-col*0.5))<radius*radius){
+        if (((i-centreY)*(i-centreY)+(j-centreX)*(j-centreX))<radius*radius){
             continue;
-          }
+        }
         // }
         temporaryValueFree = 0;
         temporaryValueLinked = 0;
