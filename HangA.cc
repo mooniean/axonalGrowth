@@ -685,7 +685,7 @@ void ballmove(){
     vv[i]=(v<gradTmin?0:v);
     
     // <Código Bia>
-   /*
+   
     char name[255];
     sprintf(name, "A.%s.%d_proteins_5",fora,lastt);
     double Dfinal=D2;
@@ -737,9 +737,9 @@ void ballmove(){
       }
       Dfinal = Dfinal*D2;
       flagVel<<Dfinal<<" saiu "<<t<<endl;
-    }*/
+    }
     // </Código Bia>
-    double Dfinal=D2; // Acrescentei isto aqui para tirar a parte das proteinas deste pedaco
+    //double Dfinal=D2; // Acrescentei isto aqui para tirar a parte das proteinas deste pedaco
 
     Bolas[i][0]=x+dt*Dfinal*(R[x1][y1]*ruido+1)*(v<vmax?vx:vmax*vx/v);
     Bolas[i][1]=y+dt*Dfinal*(R[x1][y1]*ruido+1)*(v<vmax?vy:vmax*vy/v);

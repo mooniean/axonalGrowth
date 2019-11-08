@@ -263,9 +263,9 @@ int main(int argc, char * argv[]){
   double ** divMlinkedV = initMatrix(row,col); // Divergence of linked mRNA Vector
   double ** newflag 	  = initMatrix(row,col); // Flag of the microtubules
   double ** oldmfreePhi = initMatrix(row,col); // Temporary phi matrix
- // double ** proteins    = initMatrix(row,col); // Proteins concentration
-  //double ** protPhi     = initMatrix(row,col); // Proteins concentration multiplied by Phi
-  //double ** lapprot     = initMatrix(row,col); // Laplacian of Proteins concentration multiplied by Phi
+  double ** proteins    = initMatrix(row,col); // Proteins concentration
+  double ** protPhi     = initMatrix(row,col); // Proteins concentration multiplied by Phi
+  double ** lapprot     = initMatrix(row,col); // Laplacian of Proteins concentration multiplied by Phi
   // double ** mtotal 	  = initMatrix(row,col);
 
   allZeros(mtube,row,col,0);
@@ -282,9 +282,9 @@ int main(int argc, char * argv[]){
   allZeros(phi,col,row,0);
   allZeros(newflag,col,row,0);
   allZeros(oldmfreePhi,col,row,0);
-  //allZeros(proteins,col,row,0);
-  //allZeros(protPhi,col,row,0);
-  //allZeros(lapprot,col,row,0);
+  allZeros(proteins,col,row,0);
+  allZeros(protPhi,col,row,0);
+  allZeros(lapprot,col,row,0);
 
  
 
@@ -342,7 +342,7 @@ int main(int argc, char * argv[]){
       }
     }
     fclose(new);
-    /*
+    
     new = fopen("mproteins_final","r");
     for (j=0; j<row; j++){
       for (i=0; i<(col); i++){
@@ -351,7 +351,7 @@ int main(int argc, char * argv[]){
       }
     }
     fclose(new);
-    */
+    
   }
 
 
@@ -375,12 +375,12 @@ int main(int argc, char * argv[]){
       // printingWorld(f, col, row, mfreePhi);
       // fclose(f);
 
-      /*
+      
       snprintf(name, sizeof(char) * 32, "%s_proteins_%d", filename,m);
       f = fopen(name, "w");
       printingWorld(f, col, row, proteins);
       fclose(f);
-      */
+      
       m++;
       // printf("m %d",m);
       // printf("\n");
@@ -397,8 +397,8 @@ int main(int argc, char * argv[]){
     laplaceOperator2D(mfreePhi, lapMfreePhi, row, col,dx);
     divergence2D(mlinkedVx, mlinkedVy, divMlinkedV, col, row, dx);
 
-    //phiUfunc(proteins,phi,protPhi,row,col);
-    //laplaceOperator2D(protPhi,lapprot,row,col,dx);
+    phiUfunc(proteins,phi,protPhi,row,col);
+    laplaceOperator2D(protPhi,lapprot,row,col,dx);
 
     for (i=0;i<row; i++){
       for (j=0;j<col;j++){
@@ -413,13 +413,13 @@ int main(int argc, char * argv[]){
         // }
         temporaryValueFree = 0;
         temporaryValueLinked = 0;
-        //tempProteins=0;
+        tempProteins=0;
         temp = (M-mlinked[i][j])/M;
 
         if (phi[i][j] > threshold){
           temporaryValueFree = (k*lapMfreePhi[i][j] )/(phi[i][j]) - lambdaf*mfree[i][j] - density[i][j]*mfree[i][j]*temp ;
           temporaryValueLinked = -vm*temp*divMlinkedV[i][j] + density[i][j]*mfreePhi[i][j]*temp - lambdal*mlinked[i][j];
-          //tempProteins = (k*lapprot[i][j] )/(phi[i][j])-lambdap*proteins[i][j]+alpha*mfree[i][j];
+          tempProteins = (k*lapprot[i][j] )/(phi[i][j])-lambdap*proteins[i][j]+alpha*mfree[i][j];
 
           if(density[i][j] > threshold){
             temporaryValueFree+= betam*(1-density[i][j])*mlinked[i][j] / (phi[i][j]*density[i][j]);
@@ -428,7 +428,7 @@ int main(int argc, char * argv[]){
         }
         mfree[i][j] = mfree[i][j] + dt*temporaryValueFree;
         mlinked[i][j] = mlinked[i][j] + dt*temporaryValueLinked;
-        //proteins[i][j] = proteins[i][j] + dt*tempProteins;
+        proteins[i][j] = proteins[i][j] + dt*tempProteins;
 
         if (mlinked[i][j]<0){
           mlinked[i][j]=0;
@@ -457,12 +457,12 @@ int main(int argc, char * argv[]){
   printingWorld(f, col, row, mfreePhi);
   fclose(f);
 
-  /*
+  
   snprintf(name, sizeof(char) * 32, "mproteins_final");
   f = fopen(name, "w");
   printingWorld(f, col, row, proteins);
   fclose(f);
-  */
+  
 
 
   freeMatrix(vectorx,col,row);
@@ -479,9 +479,9 @@ int main(int argc, char * argv[]){
   freeMatrix(density,col,row);
   freeMatrix(newflag,col,row);
   freeMatrix(oldmfreePhi,col,row);
-  //freeMatrix(proteins,col,row);
-  //freeMatrix(protPhi,col,row);
-  //freeMatrix(lapprot,col,row);
+  freeMatrix(proteins,col,row);
+  freeMatrix(protPhi,col,row);
+  freeMatrix(lapprot,col,row);
 
 
 
