@@ -123,13 +123,14 @@ int main (int argc, char * argv[]){
 	gradientes<<t<<"\t"<<sqrt(gT[(int)Bolas[km][0]][(int)Bolas[km][1]][0]*gT[(int)Bolas[km][0]][(int)Bolas[km][1]][0]+gT[(int)Bolas[km][0]][(int)Bolas[km][1]][1]*gT[(int)Bolas[km][0]][(int)Bolas[km][1]][1])<<"\t"<<km<<"\n";
       }
     }
+    /*Codigo para fazer correr o programa do interior
     if((int)(t/dt)>=min){
       sprintf(outbia,"./newprog A.%s.%d %d %d %d %d %d",fora,(int)(t/dt), Lx, Ly, 10, centreX, centreY);
       printf("%s\n", outbia);
       system(outbia);
       min+=3000;
       lastt=(int)(t/dt);
-    }
+    }*/
     if(fim>0)fim++;
     if(fim>50000)break;
 
@@ -685,7 +686,7 @@ void ballmove(){
     vv[i]=(v<gradTmin?0:v);
     
     // <Código Bia>
-   
+   /*
     char name[255];
     sprintf(name, "A.%s.%d_proteins_5",fora,lastt);
     double Dfinal=D2;
@@ -738,8 +739,8 @@ void ballmove(){
       Dfinal = Dfinal*D2;
       flagVel<<Dfinal<<" saiu "<<t<<endl;
     }
-    // </Código Bia>
-    //double Dfinal=D2; // Acrescentei isto aqui para tirar a parte das proteinas deste pedaco
+    // </Código Bia> */
+    double Dfinal=D2; // Acrescentei isto aqui para tirar a parte das proteinas deste pedaco
 
     Bolas[i][0]=x+dt*Dfinal*(R[x1][y1]*ruido+1)*(v<vmax?vx:vmax*vx/v);
     Bolas[i][1]=y+dt*Dfinal*(R[x1][y1]*ruido+1)*(v<vmax?vy:vmax*vy/v);
