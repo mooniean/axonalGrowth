@@ -85,6 +85,7 @@ extern void flux(); //considera a passagem de sangue nos capilares
 int main (int argc, char * argv[]){
 
   ofstream morte;
+  ofstream parameters;
   char Mout[30];
   char outbia[100];
 
@@ -144,6 +145,11 @@ int main (int argc, char * argv[]){
     morte<<mor[i][0]<<"\t"<<mor[i][1]<<"\n";
   }
   morte.close();
+
+  sprintf(outbia,"initparameters.txt");
+  parameters.open(outbia);
+  parameters<<Lx<<"\t"<<Ly<<"\t"<<10<<"\t"<< centreX<<"\t"<<centreY<<"\n";
+  parameters.close();
 
 }
 
