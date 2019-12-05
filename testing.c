@@ -5,7 +5,18 @@
 #include "functions2d.h"
 
 static int row = 300, col = 300, tmax = 15, radius = 10, centreX, centreY;
-static double vm=1, k=10, lambdal=0.001,lambdaf=0.005, dt=0.000005, dx = 0.5, temporaryValueFree, temporaryValueLinked, M=1, lambdap=0.001, alpha=0.01, betam, gamma; //tempProteins, betam=0.01, /*dt = 0.000005,*/
+static double vm=1, k=10, lambdal=0.001,lambdaf=0.005, dt=0.000005, dx = 0.5, temporaryValueFree, temporaryValueLinked, M=1, betam, gamma; //tempProteins, betam=0.01, /*dt = 0.000005,*/lambdap=0.001,  alpha=0.01,
+
+/*
+Variable definitions:
+vm - 
+k - Diffusion constant for free mRNA
+lambdal - consumption rate of linked mRNA (rate at what it's destroyed)
+lambdaf - consumption rate of free mRNA (rate at what it's destroyed)
+M - Maximum Concentration of mRNA linked to microtubules
+betam - binding probability
+gamma - unbinding probability
+*/
 static char filename[100];
 
 void mtubeFormation(double ** mtube){
@@ -242,12 +253,24 @@ void openPhiFile(double ** newphi){
 int main(int argc, char * argv[]){
   int i,j, m=0, concflag=0; char name[32]; double t, threshold = pow(10,-8), temp,concentration; 
 
-  strcpy(filename, argv[1]);
-  row = atoi(argv[2]);
-  col = atoi(argv[3]);
-  radius = atoi(argv[4]);
-  centreX = atoi(argv[5]);
-  centreY = atoi(argv[6]);
+
+  // Getting the variables to init the program with the nucleus in the correct place.
+  FILE *new = fopen("initparameters.txt","r");
+  fscanf(new, "%lf",&row);
+  fscanf(new, "%lf",&col);
+  fscanf(new, "%lf",&radius);
+  fscanf(new, "%lf",&centreX);
+  fscanf(new, "%lf",&centreY);
+
+  strcpy(filename, argv[1]); // This will be the name of the Phi file we're opening
+  betam = atoi(argv[2]);
+  gamma = atoi(argv[3]);
+
+  //row = atoi(argv[2]);
+  //col = atoi(argv[3]);
+  //radius = atoi(argv[4]);
+  //centreX = atoi(argv[5]);
+  //centreY = atoi(argv[6]);
 
 
 
@@ -419,8 +442,8 @@ int main(int argc, char * argv[]){
         temp = (M-mlinked[i][j])/M;
 
         if (phi[i][j] > threshold){
-          temporaryValueFree = (k*lapMfreePhi[i][j] )/(phi[i][j]) - lambdaf*mfree[i][j] - density[i][j]*mfree[i][j]*temp ;
-          temporaryValueLinked = -vm*temp*divMlinkedV[i][j] + density[i][j]*mfreePhi[i][j]*temp - lambdal*mlinked[i][j];
+          temporaryValueFree = (k*lapMfreePhi[i][j] )/(phi[i][j]) - lambdaf*mfree[i][j] - density[i][j]*mfree[i][j]*temp*gamma;
+          temporaryValueLinked = -vm*temp*divMlinkedV[i][j] - lambdal*mlinked[i][j] + density[i][j]*mfreePhi[i][j]*temp*gamma;
         //  tempProteins = (k*lapprot[i][j] )/(phi[i][j])-lambdap*proteins[i][j]+alpha*mfree[i][j];
 
           if(density[i][j] > threshold){
