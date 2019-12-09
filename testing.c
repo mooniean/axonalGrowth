@@ -5,7 +5,7 @@
 #include "functions2d.h"
 
 static int row = 300, col = 300, tmax = 15, radius = 10, centreX, centreY;
-static double vm=1, k=10, lambdal=0.001,lambdaf=0.005, dt=0.000005, dx = 0.5, temporaryValueFree, temporaryValueLinked, M=1, betam, gamma; //tempProteins, betam=0.01, /*dt = 0.000005,*/lambdap=0.001,  alpha=0.01,
+static double vm=1, k=10, lambdal=0.001,lambdaf=0.005, dt=0.000005, dx = 0.5, temporaryValueFree, temporaryValueLinked, M=1, betam, gammain; //tempProteins, betam=0.01, /*dt = 0.000005,*/lambdap=0.001,  alpha=0.01,
 
 /*
 Variable definitions:
@@ -255,24 +255,28 @@ int main(int argc, char * argv[]){
 
 
   // Getting the variables to init the program with the nucleus in the correct place.
-  FILE *new = fopen("initparameters.txt","r");
-  fscanf(new, "%lf",&row);
-  fscanf(new, "%lf",&col);
-  fscanf(new, "%lf",&radius);
-  fscanf(new, "%lf",&centreX);
-  fscanf(new, "%lf",&centreY);
+  FILE *initFile = fopen("initparameters.txt","r");
+  fscanf(initFile, "%d",&row);
+  fscanf(initFile, "%d",&col);
+  fscanf(initFile, "%d",&radius);
+  fscanf(initFile, "%d",&centreX);
+  fscanf(initFile, "%d",&centreY);
 
+  fclose(initFile);
+
+  printf("Row: %d, Col: %d, radius: %d, centreX: %d, centreY: %d", row,col,radius,centreX,centreY);
+  printf("\n");
   strcpy(filename, argv[1]); // This will be the name of the Phi file we're opening
-  betam = atoi(argv[2]);
-  gamma = atoi(argv[3]);
+  betam = atof(argv[2]); // atoi if char to int
+  gammain = atof(argv[3]);
 
   //row = atoi(argv[2]);
   //col = atoi(argv[3]);
   //radius = atoi(argv[4]);
   //centreX = atoi(argv[5]);
   //centreY = atoi(argv[6]);
-
-
+  printf("Gamma: %lf, betam: %lf \n", gammain, betam);
+  printf("\n");
 
   double ** mtube   	  = initMatrix(row,col); // Microtubules
   double ** vectorx 	  = initMatrix(row,col); // X Component of Microtubule Vector
@@ -442,8 +446,8 @@ int main(int argc, char * argv[]){
         temp = (M-mlinked[i][j])/M;
 
         if (phi[i][j] > threshold){
-          temporaryValueFree = (k*lapMfreePhi[i][j] )/(phi[i][j]) - lambdaf*mfree[i][j] - density[i][j]*mfree[i][j]*temp*gamma;
-          temporaryValueLinked = -vm*temp*divMlinkedV[i][j] - lambdal*mlinked[i][j] + density[i][j]*mfreePhi[i][j]*temp*gamma;
+          temporaryValueFree = (k*lapMfreePhi[i][j] )/(phi[i][j]) - lambdaf*mfree[i][j] - density[i][j]*mfree[i][j]*temp*gammain;
+          temporaryValueLinked = -vm*temp*divMlinkedV[i][j] - lambdal*mlinked[i][j] + density[i][j]*mfreePhi[i][j]*temp*gammain;
         //  tempProteins = (k*lapprot[i][j] )/(phi[i][j])-lambdap*proteins[i][j]+alpha*mfree[i][j];
 
           if(density[i][j] > threshold){
