@@ -7,6 +7,14 @@
 from scipy.ndimage import convolve
 import numpy as np
 
+def heaviside(x):
+    if x>=0:
+        return 1
+    else:
+        return 0
+heaviside = np.vectorize(heaviside)
+
+h = lambda x: x ** 2 * (3. - 2. * x)
 
 def smoothing(phi, tstep, stencil):
     nstep = 0
@@ -56,14 +64,15 @@ def init_cell(phi, cell_position, cell_radius):
     return phi
 
 def init_growth_factor(ngf, neuron_position, neuron_radius):
-  for i in range(0, ngf.size):
-    s = np.asarray(np.unravel_index(i, ngf.shape))
+    for i in range(0, ngf.size):
+        s = np.asarray(np.unravel_index(i, ngf.shape))
 
-    distance = s - neuron_position
-    distance = np.sqrt(np.sum(np.power(distance, 2)))
-    if distance > neuron_radius+2:
-        ngf.itemset(i, np.random.rand()*10.)
-  return ngf
+        distance = s - neuron_position
+        distance = np.sqrt(np.sum(np.power(distance, 2)))
+        if distance > neuron_radius+2:
+            ngf.itemset(i, np.random.rand()*10.)
+
+    return ngf
 
 def container(field_1, field_2, alpha):
     """
@@ -74,3 +83,18 @@ def container(field_1, field_2, alpha):
     """
     mu = np.power(1. - field_2, 2) + alpha
     return field_1*mu* np.power(mu*(np.power(field_1, 2) + alpha), -0.5)
+
+def unit_vector(vector, norm):
+    
+    if norm > 0:
+        return vector/norm
+    else:
+        return 0
+unit_vector = np.vectorize(unit_vector)
+
+def coeff_beta_(mtb):
+    if mtb>10e-2:
+        return  1./mtb
+    else:
+        return 0.
+coeff_beta_ = np.vectorize(coeff_beta_)
