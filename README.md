@@ -4,5 +4,3 @@
 # axonalGrowth
 Developing a phase-field model for axonal growth. We have interest on how mRNA traffic affects the growth cone navigation.
 
-
-
