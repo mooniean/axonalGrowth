@@ -1,6 +1,6 @@
 import unittest
 import numpy as np
-from pyaxon.functions import *
+# import the functions
 
 
 class TestGeneral(unittest.TestCase):
@@ -11,7 +11,7 @@ class TestGeneral(unittest.TestCase):
 
     def test_init(self):
         # tests should be written here
-        self.assertEqual(h(1.),h(1.))
+        self.assertAlmostEqual(1., 1.)
     
 
 if __name__ == '__main__':
