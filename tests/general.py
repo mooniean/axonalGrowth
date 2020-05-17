@@ -1,6 +1,6 @@
 import unittest
 import numpy as np
-import pyaxon.functions
+from pyaxon.functions import *
 
 
 class TestGeneral(unittest.TestCase):
