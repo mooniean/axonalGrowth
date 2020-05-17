@@ -15,3 +15,4 @@ setup(
     packages=find_packages(),
     install_requires=['numpy >= 1.14.3',
                       'scipy >= 1.3.0'],
+)
