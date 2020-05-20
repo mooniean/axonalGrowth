@@ -192,4 +192,3 @@ epub_exclude_files = ['search.html']
 
 
 # -- Extension configuration -------------------------------------------------
-© 2020 GitHub, Inc.
