@@ -20,9 +20,9 @@ sys.path.insert(0, os.path.abspath('../'))
 
 # -- Project information -----------------------------------------------------
 
-project = 'trajpy'
-copyright = '2019, Mauricio Moreira'
-author = 'Mauricio Moreira'
+project = 'pyaxon'
+copyright = '2020, Beatriz Costa-Gomes & Mauricio Moreira'
+author = 'Beatriz Costa-Gomes & Mauricio Moreira'
 
 # The short X.Y version
 version = ''
