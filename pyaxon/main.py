@@ -70,6 +70,7 @@ while (nstep <= tstep):
     chem = ((grad_phi[0]*unit_grad_ngf[0] + grad_phi[1]*unit_grad_ngf[1]))
     mf_GC = mf[icl:ich, jcl:jch].sum()
     
+    # troca (mf_GC/(1+mf_GC)) para apenas mf_GC e talvez ajustar chi
     chi_ = chi * (mf_GC/(1+mf_GC)) * chem
     
     mf.itemset(mf_source_position, mf_source_value ) #  source of free-mRNA at the centre of the axon
