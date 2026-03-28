@@ -81,8 +81,8 @@ help:
 	@echo "  fix            Auto-fix all safe lint violations, then format"
 	@echo ""
 	@echo "$(BOLD)Tests$(RESET)"
-	@echo "  test           Run the full test suite with pytest"
-	@echo "  cov            Run tests with coverage measurement"
+	@echo "  test           Run the full test suite + terminal coverage summary"
+	@echo "  cov            Run tests with coverage + HTML report in htmlcov/"
 	@echo "  cov-report     Open the HTML coverage report in the browser"
 	@echo ""
 	@echo "$(BOLD)Build & publish$(RESET)"
@@ -158,14 +158,14 @@ fix:
 # Tests
 # ---------------------------------------------------------------------------
 
-## Run the full test suite.
+## Run the full test suite with a terminal coverage summary.
 test:
-	@echo "$(BOLD)$(CYAN)► pytest$(RESET)"
-	$(PYTEST)
-
-## Run tests with branch coverage measurement.
-cov:
 	@echo "$(BOLD)$(CYAN)► pytest --cov$(RESET)"
+	$(PYTEST) --cov=pyaxon --cov-branch --cov-report=term-missing
+
+## Run tests with branch coverage + full HTML report in htmlcov/.
+cov:
+	@echo "$(BOLD)$(CYAN)► pytest --cov (HTML)$(RESET)"
 	$(PYTEST) --cov=pyaxon --cov-branch --cov-report=term-missing --cov-report=html
 
 ## Open the HTML coverage report (macOS / Linux).
