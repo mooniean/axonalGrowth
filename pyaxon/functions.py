@@ -149,7 +149,7 @@ def init_cell(phi, cell_position, cell_radius):
     return phi
 
 
-def init_growth_factor(ngf, neuron_position, neuron_radius):
+def init_growth_factor(ngf, neuron_position, neuron_radius, rng=None):
     """Initialise the NGF field as a random background outside the neuron soma.
 
     Sets ngf[r] ~ Uniform(0, 10) for grid points more than (neuron_radius + 2)
@@ -163,17 +163,23 @@ def init_growth_factor(ngf, neuron_position, neuron_radius):
         Centre of the neuron soma.
     neuron_radius   : float
         Radius of the soma exclusion zone.
+    rng             : numpy.random.Generator or None, optional
+        Random number generator to use.  Pass ``np.random.default_rng(seed)``
+        for reproducible results.  Defaults to ``np.random.default_rng()``.
 
     Returns
     -------
     ngf : 2-D ndarray
         Initialised NGF field.
     """
+    # Use the modern Generator API (NPY002); create a fresh one if none supplied.
+    if rng is None:
+        rng = np.random.default_rng()
     for i in range(ngf.size):
         s = np.asarray(np.unravel_index(i, ngf.shape))
         distance = np.sqrt(np.sum(np.power(s - neuron_position, 2)))
         if distance > neuron_radius + 2:
-            ngf.flat[i] = np.random.Generator() * 10.0
+            ngf.flat[i] = rng.random() * 10.0
     return ngf
 
 

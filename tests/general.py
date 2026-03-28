@@ -7,7 +7,8 @@ from pyaxon.functions import build_transport_field, conservative_upwind_advectio
 class TestGeneral(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        np.random.RandomState(0)
+        # Use the modern Generator API (NPY002) with a fixed seed for reproducibility.
+        cls.rng = np.random.default_rng(0)
 
     def test_init(self):
         # tests should be written here
