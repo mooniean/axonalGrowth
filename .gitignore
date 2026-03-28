@@ -31,3 +31,4 @@ build/
 *.gif
 *.png
 _build
+.coverage
