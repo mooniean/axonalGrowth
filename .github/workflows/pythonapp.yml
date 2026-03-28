@@ -1,5 +1,8 @@
-# This workflow will install Python dependencies, run tests and lint with a single version of Python
-# For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
+# CI pipeline for pyaxon
+# Dependency manager : uv
+# Linter / formatter : ruff  (replaces flake8)
+# Test runner        : pytest + pytest-cov
+# Triggered on every push and pull-request targeting master.
 
 name: pyaxon
 
@@ -10,27 +13,72 @@ on:
     branches: [ master ]
 
 jobs:
-  build:
-
+  ci:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # Test against the minimum supported version and the current stable release.
+        python-version: ["3.9", "3.13"]
 
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.8
-      uses: actions/setup-python@v2
-      with:
-        python-version: 3.8
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install flake8 pytest pytest-cov
-        pip install -r requirements.txt
-    - name: Lint with flake8
-      run: |
-        # stop the build if there are Python syntax errors or undefined names
-        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-    - name: Test with pytest
-      run: |
-          pytest tests/general.py --doctest-modules --junitxml=junit/test-results.xml --cov=com --cov-report=xml --cov-report=html
+      # ── Checkout ────────────────────────────────────────────────────────────
+      - uses: actions/checkout@v4
+
+      # ── Install uv ──────────────────────────────────────────────────────────
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true          # cache the uv download and package cache
+          cache-dependency-glob: "pyproject.toml"
+
+      # ── Set up Python ────────────────────────────────────────────────────────
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      # ── Install project + dev dependencies via uv ────────────────────────────
+      - name: Install dependencies
+        run: uv sync --group dev
+
+      # ── Lint with ruff (errors + undefined names only – hard fail) ────────────
+      - name: Lint (hard – syntax errors and undefined names)
+        run: uv run ruff check --select E9,F63,F7,F82 pyaxon tests
+
+      # ── Lint with ruff (full rule set – informational, soft fail) ─────────────
+      - name: Lint (full rule set)
+        run: uv run ruff check pyaxon tests
+        continue-on-error: true
+
+      # ── Format check ─────────────────────────────────────────────────────────
+      - name: Format check
+        run: uv run ruff format --check pyaxon tests
+        continue-on-error: true
+
+      # ── Tests with coverage ───────────────────────────────────────────────────
+      - name: Test with pytest
+        run: |
+          uv run pytest tests/ \
+            --junitxml=junit/test-results-${{ matrix.python-version }}.xml \
+            --cov=pyaxon \
+            --cov-branch \
+            --cov-report=xml \
+            --cov-report=html
+
+      # ── Upload JUnit test report ──────────────────────────────────────────────
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()                  # upload even if tests fail
+        with:
+          name: test-results-${{ matrix.python-version }}
+          path: junit/test-results-${{ matrix.python-version }}.xml
+
+      # ── Upload coverage report ────────────────────────────────────────────────
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-${{ matrix.python-version }}
+          path: |
+            coverage.xml
+            htmlcov/

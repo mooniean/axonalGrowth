@@ -1,17 +1,17 @@
 import unittest
+
 import numpy as np
 from pyaxon.functions import build_transport_field, conservative_upwind_advection, rasterized_line
 
 
 class TestGeneral(unittest.TestCase):
-
     @classmethod
     def setUpClass(cls):
         np.random.RandomState(0)
 
     def test_init(self):
         # tests should be written here
-        self.assertAlmostEqual(1., 1.)
+        self.assertAlmostEqual(1.0, 1.0)
 
     def test_rasterized_line_keeps_endpoints(self):
         line = rasterized_line((20, 20), (20, 35))
@@ -37,5 +37,5 @@ class TestGeneral(unittest.TestCase):
         self.assertGreater(advection[2, 2], 0.0)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

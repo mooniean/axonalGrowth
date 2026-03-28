@@ -1,8 +1,8 @@
 import pkg_resources
 
-name = 'pyaxon'
+name = "pyaxon"
 
 try:
-    __version__ = pkg_resources.get_distribution('pyaxon').version
+    __version__ = pkg_resources.get_distribution("pyaxon").version
 except pkg_resources.DistributionNotFound:
-    __version__ = ''
+    __version__ = ""
