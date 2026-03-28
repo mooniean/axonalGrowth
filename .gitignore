@@ -27,4 +27,6 @@ build/
 *.log
 *.pot
 *.mo
-
+*.npz
+*.gif
+*.png

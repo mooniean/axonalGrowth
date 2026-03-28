@@ -39,7 +39,7 @@ V_target = h(phi).sum()
 
 r_cm = com(phi, V_target, ndim=2)
 icalc = 0
-ncalc = 250
+ncalc = 100 # before: 250
 
 while (nstep <= tstep): 
 

@@ -45,8 +45,8 @@ Mm = 1.  # microtubules saturation
 chi_ml = 100.0  # mRNA-Linked transport coefficient
 ### 
 
-chi = 10.  # chemotaxis
-alpha_p = 10.0  # proliferation
+chi = 3.  # chemotaxis
+alpha_p = 15.0  # proliferation
 D_ngf = 100.  # Nerve Growth Factor diffusion coefficient
 D_mtb = 0.1  # microtubules diffusion coefficient
 
