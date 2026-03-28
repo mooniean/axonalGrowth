@@ -1,10 +1,10 @@
 from scipy.ndimage import convolve
 import numpy as np
-from parameters import *
+from pyaxon.parameters import *
 import os
 
-prefix_ = 'deb_2_'
-os.system('mkdir '+prefix_)
+prefix_ = 'deb_3_'
+os.makedirs(prefix_, exist_ok=True)
 
 ngf = np.zeros(L)
 phi = np.zeros(L)
@@ -12,12 +12,14 @@ psi = np.zeros(L)
 mtb = np.zeros(L)
 mf = np.zeros(L)
 ml = np.zeros(L)
-v_m = np.array([np.zeros(L),np.zeros(L)] )
 
 mf = 1.0*init_cell(mf, neuron_position, neuron_radius-5)
 ngf = init_growth_factor(ngf, neuron_position, neuron_radius )
 phi = init_cell(phi, gc_position, gc_radius)
 psi = init_cell(psi, neuron_position, neuron_radius)
+track_points = [tuple(point) for point in rasterized_line(neuron_position, gc_position)]
+mtb_positions[:] = [np.ravel_multi_index(point, mtb.shape) for point in track_points]
+v_m = build_transport_field(track_points, L, support_radius=0)
 
 
 # streamplot
@@ -44,25 +46,22 @@ while (nstep <= tstep):
     v = h(phi).sum()
     Lagrange = np.ones(L) * (V_target - v)
 
-    il, icl = np.int(r_cm[0]) - small_box_size, np.int(r_cm[0]) - gc_radius
-    ih, ich = np.int(r_cm[0]) + small_box_size, np.int(r_cm[0]) + gc_radius
-    jl, jcl = np.int(r_cm[1]) - small_box_size, np.int(r_cm[1]) - gc_radius
-    jh, jch = np.int(r_cm[1]) + small_box_size, np.int(r_cm[1]) + gc_radius
+    il, icl = np.int64(r_cm[0]) - small_box_size, np.int64(r_cm[0]) - gc_radius
+    ih, ich = np.int64(r_cm[0]) + small_box_size, np.int64(r_cm[0]) + gc_radius
+    jl, jcl = np.int64(r_cm[1]) - small_box_size, np.int64(r_cm[1]) - gc_radius
+    jh, jch = np.int64(r_cm[1]) + small_box_size, np.int64(r_cm[1]) + gc_radius
      
     grad_phi = np.gradient(phi[il:ih, jl:jh])
     grad_ngf = np.gradient(ngf[il:ih, jl:jh])
     grad_ngf = unit_vector(grad_ngf, norm = np.linalg.norm(grad_ngf, axis=0))
     
-    coeff_ml = (Mm-ml)/Mm
+    mtb_effective = np.clip(mtb, 0.0, 1.0)
+    coeff_ml = np.clip((Mm-ml)/Mm, 0.0, 1.0)
     beta_m[:,:] = beta_everywhere
     beta_m[icl:ich, jcl:jch] = beta_growth_cone
-    coeff_beta = coeff_beta_(mtb)*beta_m*(1-mtb)*ml
-    coeff_gamma = gamma*mf*mtb*coeff_ml  
-    grad_ml = np.gradient(ml)
-
-    # change the microtubules
-    advection_ml = coeff_ml*mtb*(v_m[0] * grad_ml[0] + v_m[1] * grad_ml[1])
-                   # + ml*convolve(mtb, stencil, mode=boundary_condition) )
+    coeff_beta = coeff_beta_(mtb_effective)*beta_m*(1-mtb_effective)*ml
+    coeff_gamma = gamma*mf*mtb_effective*coeff_ml  
+    transport_ml = conservative_upwind_advection(coeff_ml * ml * mtb_effective, chi_ml * v_m, dL=dL)
 
     
     grad_ngf_norm = np.linalg.norm(grad_ngf, axis=0, keepdims=True)
@@ -72,9 +71,9 @@ while (nstep <= tstep):
     
     # troca (mf_GC/(1+mf_GC)) para apenas mf_GC e talvez ajustar chi
     chi_ = chi * (mf_GC/(1+mf_GC)) * chem
-    
-    mf.itemset(mf_source_position, mf_source_value ) #  source of free-mRNA at the centre of the axon
-    ngf.itemset(ngf_source_position, ngf_source_value)
+
+    mf[mf_source_position] = mf_source_value  # source of free-mRNA at the centre of the axon
+    ngf[ngf_source_position] = ngf_source_value
     #ngf[:, 80] = 10.0 # for a line of sources
     
     np.put(mtb, mtb_positions, mtb_source) # setting the center of the axon as mtb_source
@@ -96,24 +95,20 @@ while (nstep <= tstep):
                             - lambda_l * ml  
                             + coeff_gamma
                             - coeff_beta 
-                            + chi_ml*advection_ml)
+                             + transport_ml)
     
      
     if icalc >= ncalc:
         
         icalc = 0
-        r_cm = com(phi, v, 2)
-        r_cm = (np.int(r_cm[0]), np.int(r_cm[1]))
-        mtb_positions.append(np.ravel_multi_index(r_cm, mtb.shape))
-        positions_mtb = np.unique(np.asarray(mtb_positions), axis=0)
-        mtb_diff = np.diff(np.unravel_index(positions_mtb, mtb.shape)).transpose()
-
-        try:
-            # +3 - 2
-            v_m[0, icl:ich, jcl+3:jch-2] = mtb_diff[-1, 1]
-            v_m[1, icl:ich, jcl+3:jch-2] = mtb_diff[-1, 0]
-        except:
-            pass
+        new_r_cm = com(phi, v, 2)
+        new_r_cm = (np.int64(new_r_cm[0]), np.int64(new_r_cm[1]))
+        segment = rasterized_line(r_cm, new_r_cm)
+        if segment.shape[0] > 1:
+            track_points.extend(tuple(point) for point in segment[1:])
+            mtb_positions[:] = [np.ravel_multi_index(point, mtb.shape) for point in track_points]
+            v_m = build_transport_field(track_points, L, support_radius=0)
+        r_cm = new_r_cm
         
     if (nprint >= print_period):
         print(nstep)

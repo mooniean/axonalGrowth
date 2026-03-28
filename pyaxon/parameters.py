@@ -1,5 +1,5 @@
 import numpy as np
-from functions import *
+from pyaxon.functions import *
 
 kwargs = {'origin':'lower', 'interpolation':'sinc', 'cmap':'seismic',}
 
@@ -22,7 +22,7 @@ ngf_source_position = (30, 90)
 ngf_source_value = 10.0
 mf_source_position = (neuron_position[0], neuron_position[1])
 mf_source_value = 10.0
-mtb_source = 1.0
+mtb_source = 1.0 # trial: reduced from 1.0 to 0.8 to see if mf at the tip increase
 mtb_positions = []
 lambda_mtb = 0.1
 neuron_radius = 15
@@ -52,7 +52,7 @@ D_mtb = 0.1  # microtubules diffusion coefficient
 
 
 nstep = 0  # actual time step
-tstep = 60000  # total number of steps
+tstep = 200000  # total number of steps
 dt = 0.001  # time interval
 print_period = 10000
 nprint = print_period # counter to output data
