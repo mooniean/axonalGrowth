@@ -30,3 +30,4 @@ build/
 *.npz
 *.gif
 *.png
+_build

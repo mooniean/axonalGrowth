@@ -1,18 +1,18 @@
-.. trajpy documentation master file, created by
-   sphinx-quickstart on Tue Oct 15 17:58:12 2019.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+.. Welcome to pyaxon's documentation!
+===================================
 
-Welcome to pyAxon's documentation!
-==================================
-
-Contents:
+``pyaxon`` simulates axonal growth using a multi-phase-field model.
+A growth cone navigates a Nerve Growth Factor (NGF) gradient while free and
+microtubule-linked mRNA are transported along the growing axon shaft.
 
 .. toctree::
+   :maxdepth: 2
+   :caption: Contents
+
    intro
    installation
    tutorial
-   modules_index
+   module_index
 
 
 Indices and tables
@@ -21,4 +21,3 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-
