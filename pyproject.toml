@@ -1,0 +1,119 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+# ---------------------------------------------------------------------------
+# Project metadata  (PEP 621)
+# ---------------------------------------------------------------------------
+[project]
+name            = "pyaxon"
+version         = "1.1.1"
+description     = "Multi-phase-field model for axonal growth and mRNA transport"
+readme          = "README.md"
+license         = { text = "GNU GPLv3" }
+authors         = [{ name = "mooniean and phydev" }]
+requires-python = ">=3.9"
+
+dependencies = [
+    "numpy>=1.14.3",
+    "scipy>=1.3.0",
+    "matplotlib>=3.5",
+    "Pillow>=9.0",
+]
+
+[project.urls]
+Repository = "https://github.com/mooniean/axonalGrowth"
+
+[project.scripts]
+# CLI entry-point provided by plot_npz.py
+plot-npz = "pyaxon.plot_npz:main"
+
+# ---------------------------------------------------------------------------
+# Optional dependency groups  (uv: `uv sync --group dev`)
+# ---------------------------------------------------------------------------
+[dependency-groups]
+dev = [
+    "hatchling>=1.24",     # build backend – required by `uv build`
+    "ruff>=0.4",
+    "pytest>=8.0",
+    "pytest-cov>=5.0",
+    "coverage[toml]>=7.0",
+    "black"
+]
+docs = [
+    "sphinx>=7.0",
+    "sphinx-rtd-theme>=2.0",
+    "nbsphinx>=0.9",
+    "ipython>=8.0",
+    "ipykernel>=6.0",
+]
+publish = [
+    "twine>=5.0",          # optional: upload wheels to PyPI
+]
+
+# ---------------------------------------------------------------------------
+# Ruff – linter + formatter
+# ---------------------------------------------------------------------------
+[tool.ruff]
+# Treat every file under pyaxon/ and tests/ as part of the package.
+src            = ["pyaxon", "tests"]
+target-version = "py39"
+line-length    = 100
+
+[tool.ruff.lint]
+# Rule sets enabled:
+#   E / W  – pycodestyle errors and warnings
+#   F      – Pyflakes (undefined names, unused imports, …)
+#   I      – isort (import ordering)
+#   UP     – pyupgrade (modern Python syntax)
+#   B      – flake8-bugbear (common gotchas)
+#   SIM    – flake8-simplify
+#   NPY    – NumPy-specific rules
+select = ["E", "W", "F", "I", "UP", "B", "SIM", "NPY"]
+
+# Ignore rules that conflict with the scientific-computing style used here:
+#   E501   – line too long (handled by the formatter, not the linter)
+#   B008   – function calls in default args (common in NumPy wrappers)
+#   UP007  – Optional[X] → X | None  (keep explicit Optional for readability)
+ignore = ["E501", "B008", "UP007"]
+
+# Never auto-remove unused imports in __init__.py (they form the public API).
+[tool.ruff.lint.per-file-ignores]
+"pyaxon/__init__.py" = ["F401"]
+# Tests can use assert-style checks and shorter variable names.
+"tests/*"            = ["S101", "ANN"]
+
+[tool.ruff.format]
+# Use double quotes everywhere (consistent with PEP 8 and ruff defaults).
+quote-style = "double"
+indent-style = "space"
+
+# ---------------------------------------------------------------------------
+# Pytest
+# ---------------------------------------------------------------------------
+[tool.pytest.ini_options]
+testpaths     = ["tests"]
+python_files  = ["*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+# Show short test summary and local variables on failure.
+addopts = "-v --tb=short"
+
+# ---------------------------------------------------------------------------
+# Coverage
+# ---------------------------------------------------------------------------
+[tool.coverage.run]
+source   = ["pyaxon"]
+branch   = true
+omit     = ["pyaxon/__init__.py", "pyaxon/main.py", "pyaxon/parameters.py"]   # main.py is a script, not a library
+
+[tool.coverage.report]
+show_missing   = true
+skip_covered   = false
+fail_under     = 60      # raise CI failure if coverage drops below 30 %
+exclude_lines  = [
+    "pragma: no cover",
+    "if __name__ == .__main__.:",
+    "raise NotImplementedError",
+]
+
