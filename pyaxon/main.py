@@ -150,7 +150,9 @@ if __name__ == "__main__":
     # inside/outside the neuron before the coupled dynamics start.
     for _i in range(0, 100):
         # mf diffuses with coefficient 10 and is confined by the container potential.
-        mf = mf + dt * convolve(10 * mf + container(mf, psi, 0.0001), stencil, mode=boundary_condition)
+        mf = mf + dt * convolve(
+            10 * mf + container(mf, psi, 0.0001), stencil, mode=boundary_condition
+        )
         # NGF diffuses freely during pre-equilibration (no cone/psi present yet).
         ngf = ngf + dt * D_ngf * convolve(ngf, stencil, mode=boundary_condition)
 
@@ -263,7 +265,9 @@ if __name__ == "__main__":
         # using a conservative first-order upwind flux -div(flux * v_m).
         # The upwind scheme is stable for |chi_ml * v_m * dt / dL| < 1
         # (Courant–Friedrichs–Lewy condition) and exactly conserves total ml.
-        transport_ml = conservative_upwind_advection(coeff_ml * ml * mtb_effective, chi_ml * v_m, dL=dL)
+        transport_ml = conservative_upwind_advection(
+            coeff_ml * ml * mtb_effective, chi_ml * v_m, dL=dL
+        )
 
         # ── Chemotactic velocity of the growth cone ───────────────────────────────
         grad_ngf_norm = np.linalg.norm(grad_ngf, axis=0, keepdims=True)
@@ -343,7 +347,11 @@ if __name__ == "__main__":
             + dt
             * (
                 D_mtb
-                * convolve(mtb + 2 * container(mtb, psi, alpha_), stencil, mode=boundary_condition)
+                * convolve(
+                    mtb + 2 * container(mtb, psi, alpha_),
+                    stencil,
+                    mode=boundary_condition,
+                )
                 - lambda_mtb * mtb
             ),
             # ngf – Nerve Growth Factor: diffusion + consumption by the axon (psi * ngf).
@@ -403,7 +411,9 @@ if __name__ == "__main__":
             if (not source_reached) and segment.shape[0] > 1:
                 track_points.extend(tuple(point) for point in segment[1:])
                 # Rebuild flat-index list for np.put() and recompute the full v_m field.
-                mtb_positions[:] = [np.ravel_multi_index(point, mtb.shape) for point in track_points]
+                mtb_positions[:] = [
+                    np.ravel_multi_index(point, mtb.shape) for point in track_points
+                ]
                 v_m = build_transport_field(track_points, L, support_radius=0)
 
             r_cm = new_r_cm

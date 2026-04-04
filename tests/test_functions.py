@@ -9,8 +9,6 @@ A module-level RNG with a fixed seed is used wherever randomness is required
 import unittest
 
 import numpy as np
-from scipy.ndimage import convolve
-
 from pyaxon.functions import (
     build_transport_field,
     coeff_beta_,
@@ -216,8 +214,11 @@ class TestInitGrowthFactor(unittest.TestCase):
             s = np.asarray(np.unravel_index(i, ngf.shape))
             d = np.linalg.norm(s - self.pos)
             if d <= self.radius + 2:
-                self.assertAlmostEqual(ngf.flat[i], 0.0,
-                    msg=f"Cell at {s} (d={d:.1f}) inside exclusion zone should be 0")
+                self.assertAlmostEqual(
+                    ngf.flat[i],
+                    0.0,
+                    msg=f"Cell at {s} (d={d:.1f}) inside exclusion zone should be 0",
+                )
 
     def test_outside_exclusion_zone_is_nonnegative(self):
         ngf = np.zeros(self.shape)
@@ -230,17 +231,21 @@ class TestInitGrowthFactor(unittest.TestCase):
         self.assertTrue(np.all(ngf <= 10.0))
 
     def test_reproducible_with_seeded_rng(self):
-        ngf1 = init_growth_factor(np.zeros(self.shape), self.pos, self.radius,
-                                   rng=np.random.default_rng(42))
-        ngf2 = init_growth_factor(np.zeros(self.shape), self.pos, self.radius,
-                                   rng=np.random.default_rng(42))
+        ngf1 = init_growth_factor(
+            np.zeros(self.shape), self.pos, self.radius, rng=np.random.default_rng(42)
+        )
+        ngf2 = init_growth_factor(
+            np.zeros(self.shape), self.pos, self.radius, rng=np.random.default_rng(42)
+        )
         np.testing.assert_array_equal(ngf1, ngf2)
 
     def test_different_seeds_give_different_fields(self):
-        ngf1 = init_growth_factor(np.zeros(self.shape), self.pos, self.radius,
-                                   rng=np.random.default_rng(0))
-        ngf2 = init_growth_factor(np.zeros(self.shape), self.pos, self.radius,
-                                   rng=np.random.default_rng(99))
+        ngf1 = init_growth_factor(
+            np.zeros(self.shape), self.pos, self.radius, rng=np.random.default_rng(0)
+        )
+        ngf2 = init_growth_factor(
+            np.zeros(self.shape), self.pos, self.radius, rng=np.random.default_rng(99)
+        )
         self.assertFalse(np.array_equal(ngf1, ngf2))
 
 
@@ -264,8 +269,8 @@ class TestContainer(unittest.TestCase):
         """Confinement should be stronger where field_2 ≈ 0 (outside)."""
         f1 = np.ones((2, 2)) * 0.5
         alpha = 1e-4
-        inside = container(f1, np.ones((2, 2)) * 0.99, alpha)   # field_2 ≈ 1
-        outside = container(f1, np.zeros((2, 2)), alpha)         # field_2 ≈ 0
+        inside = container(f1, np.ones((2, 2)) * 0.99, alpha)  # field_2 ≈ 1
+        outside = container(f1, np.zeros((2, 2)), alpha)  # field_2 ≈ 0
         # The absolute confinement value is larger outside the carrier.
         self.assertTrue(np.all(np.abs(outside) > np.abs(inside)))
 
@@ -423,7 +428,7 @@ class TestConservativeUpwindAdvection(unittest.TestCase):
         field = np.zeros((6, 6))
         field[3, 2] = 1.0
         v = np.zeros((2, 6, 6))
-        v[0] = 1.0   # flow in row direction
+        v[0] = 1.0  # flow in row direction
         adv = conservative_upwind_advection(field, v, dL=1.0)
         self.assertAlmostEqual(float(adv.sum()), 0.0, places=12)
 
@@ -442,7 +447,7 @@ class TestConservativeUpwindAdvection(unittest.TestCase):
         v = np.zeros((2, 5, 5))
         v[1] = 1.0
         adv = conservative_upwind_advection(field, v, dL=1.0)
-        self.assertLess(adv[2, 1], 0.0)    # source cell loses mass
+        self.assertLess(adv[2, 1], 0.0)  # source cell loses mass
         self.assertGreater(adv[2, 2], 0.0)  # downstream cell gains mass
 
     def test_upwind_sign_row_direction(self):
@@ -479,7 +484,7 @@ class TestConservativeUpwindAdvection(unittest.TestCase):
 
     def test_finite_output_for_typical_values(self):
         field = RNG.random((10, 10))
-        v = (RNG.random((2, 10, 10)) - 0.5) * 2.0   # in (-1, 1)
+        v = (RNG.random((2, 10, 10)) - 0.5) * 2.0  # in (-1, 1)
         adv = conservative_upwind_advection(field, v, dL=1.0)
         self.assertTrue(np.all(np.isfinite(adv)))
 

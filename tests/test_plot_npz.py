@@ -6,18 +6,17 @@ non-interactive 'Agg' backend so no windows ever open during the test run.
 All file I/O uses ``tempfile.TemporaryDirectory`` so every test is isolated.
 """
 
-import sys
 import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
 
 import matplotlib
-matplotlib.use("Agg")   # must be set before any other matplotlib import
+
+matplotlib.use("Agg")  # must be set before any other matplotlib import
 import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image
-
 from pyaxon.plot_npz import (
     DEFAULT_FIELDS,
     _build_parser,
@@ -41,7 +40,6 @@ from tests.fixtures import (
 # load_simulation_npz
 # =============================================================================
 class TestLoadSimulationNpz(unittest.TestCase):
-
     def setUp(self):
         self._tmp = tempfile.TemporaryDirectory()
         self.tmp = Path(self._tmp.name)
@@ -99,7 +97,6 @@ class TestLoadSimulationNpz(unittest.TestCase):
 # _step_sort_key
 # =============================================================================
 class TestStepSortKey(unittest.TestCase):
-
     def test_trailing_number_is_used(self):
         key = _step_sort_key(Path("sim_10000.npz"))
         self.assertEqual(key[0], 10000)
@@ -119,15 +116,16 @@ class TestStepSortKey(unittest.TestCase):
         names = ["sim_20000.npz", "sim_0.npz", "sim_10000.npz"]
         paths = [Path(n) for n in names]
         sorted_paths = sorted(paths, key=_step_sort_key)
-        self.assertEqual([p.name for p in sorted_paths],
-                         ["sim_0.npz", "sim_10000.npz", "sim_20000.npz"])
+        self.assertEqual(
+            [p.name for p in sorted_paths],
+            ["sim_0.npz", "sim_10000.npz", "sim_20000.npz"],
+        )
 
 
 # =============================================================================
 # collect_npz_files
 # =============================================================================
 class TestCollectNpzFiles(unittest.TestCase):
-
     def setUp(self):
         self._tmp = tempfile.TemporaryDirectory()
         self.tmp = Path(self._tmp.name)
@@ -176,7 +174,6 @@ class TestCollectNpzFiles(unittest.TestCase):
 # plot_simulation_snapshot
 # =============================================================================
 class TestPlotSimulationSnapshot(unittest.TestCase):
-
     def setUp(self):
         self._tmp = tempfile.TemporaryDirectory()
         self.tmp = Path(self._tmp.name)
@@ -223,8 +220,7 @@ class TestPlotSimulationSnapshot(unittest.TestCase):
 
     def test_vm_2d_fallback_path(self):
         """v_m with unexpected shape should still render without error."""
-        p = make_snapshot(self.tmp / "snap.npz",
-                          extra_fields={"v_m": np.ones(SHAPE)})
+        p = make_snapshot(self.tmp / "snap.npz", extra_fields={"v_m": np.ones(SHAPE)})
         data = load_simulation_npz(p)
         fig, _ = plot_simulation_snapshot(data)
         self.assertIsInstance(fig, plt.Figure)
@@ -243,7 +239,6 @@ class TestPlotSimulationSnapshot(unittest.TestCase):
 # plot_npz
 # =============================================================================
 class TestPlotNpz(unittest.TestCase):
-
     def setUp(self):
         self._tmp = tempfile.TemporaryDirectory()
         self.tmp = Path(self._tmp.name)
@@ -302,7 +297,6 @@ class TestPlotNpz(unittest.TestCase):
 # make_gif_from_npz_files
 # =============================================================================
 class TestMakeGifFromNpzFiles(unittest.TestCase):
-
     def setUp(self):
         self._tmp = tempfile.TemporaryDirectory()
         self.tmp = Path(self._tmp.name)
@@ -385,9 +379,9 @@ class TestMakeGifFromNpzFiles(unittest.TestCase):
 # _build_parser / CLI
 # =============================================================================
 class TestBuildParser(unittest.TestCase):
-
     def test_parser_is_returned(self):
         import argparse
+
         self.assertIsInstance(_build_parser(), argparse.ArgumentParser)
 
     def test_default_cmap_is_viridis(self):
@@ -428,4 +422,3 @@ class TestBuildParser(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
-

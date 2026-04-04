@@ -7,7 +7,7 @@ temporary directory) so tests stay isolated and leave no artefacts behind.
 """
 
 from pathlib import Path
-from typing import List, Optional
+from typing import Optional
 
 import numpy as np
 
@@ -46,8 +46,8 @@ def make_snapshot(
         "phi": RNG.random(shape).astype(np.float64),
         "psi": RNG.random(shape).astype(np.float64),
         "ngf": RNG.random(shape).astype(np.float64),
-        "mf":  RNG.random(shape).astype(np.float64),
-        "ml":  RNG.random(shape).astype(np.float64),
+        "mf": RNG.random(shape).astype(np.float64),
+        "ml": RNG.random(shape).astype(np.float64),
         "mtb": RNG.random(shape).astype(np.float64),
     }
     if include_vm:
@@ -65,7 +65,7 @@ def make_snapshot_dir(
     step_size: int = 10000,
     prefix: str = "sim_",
     shape: tuple = SHAPE,
-) -> List[Path]:
+) -> list[Path]:
     """Write *n_steps* sequentially numbered snapshots into *directory*.
 
     File names follow the pattern ``{prefix}{step}.npz`` so that
@@ -87,10 +87,8 @@ def make_snapshot_no_vm(path: Path, shape: tuple = SHAPE) -> Path:
     return make_snapshot(path, shape=shape, include_vm=False)
 
 
-def make_snapshot_partial(path: Path, fields: List[str], shape: tuple = SHAPE) -> Path:
+def make_snapshot_partial(path: Path, fields: list[str], shape: tuple = SHAPE) -> Path:
     """Write a snapshot that contains only the listed field names."""
     data = {f: RNG.random(shape).astype(np.float64) for f in fields}
     np.savez(path, **data)
     return path
-
-
