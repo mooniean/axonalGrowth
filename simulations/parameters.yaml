@@ -51,5 +51,5 @@ time:
 
 # ── Output ────────────────────────────────────────────────────────────────────
 output:
-  prefix: "test_1"    # directory name and filename prefix for .npz snapshots
+  prefix: "sim_a_"    # directory name and filename prefix for .npz snapshots
 
