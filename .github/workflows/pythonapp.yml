@@ -22,7 +22,7 @@ jobs:
 
     steps:
       # ── Checkout ────────────────────────────────────────────────────────────
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       # ── Install uv ──────────────────────────────────────────────────────────
       - name: Install uv
@@ -33,7 +33,7 @@ jobs:
 
       # ── Set up Python ────────────────────────────────────────────────────────
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -67,7 +67,7 @@ jobs:
 
       # ── Upload JUnit test report ──────────────────────────────────────────────
       - name: Upload test results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         if: always()                  # upload even if tests fail
         with:
           name: test-results-${{ matrix.python-version }}
@@ -75,7 +75,7 @@ jobs:
 
       # ── Upload coverage report ────────────────────────────────────────────────
       - name: Upload coverage report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         if: always()
         with:
           name: coverage-${{ matrix.python-version }}

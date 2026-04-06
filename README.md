@@ -1,6 +1,5 @@
 ![pyaxon](https://github.com/mooniean/axonalGrowth/workflows/pyaxon/badge.svg)
 [![Documentation Status](https://readthedocs.org/projects/axonalgrowth/badge/?version=latest)](https://axonalgrowth.readthedocs.io/en/latest/?badge=latest)
-[![Python 3](https://pyup.io/repos/github/mooniean/axonalGrowth/python-3-shield.svg)](https://pyup.io/repos/github/mooniean/axonalGrowth)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
 # pyaxon – Phase-field model for axonal growth and mRNA transport
@@ -36,6 +35,7 @@ microtubule-linked mRNA are transported along the growing axon shaft.
 | scipy | 1.3.0 | convolutions |
 | matplotlib | 3.5 | plotting |
 | Pillow | 9.0 | GIF encoding |
+| PyYAML | 6.0 | parameter file parsing |
 
 Development extras (`ruff`, `pytest`, `coverage`) and documentation extras
 (`sphinx`) are managed through `pyproject.toml` dependency groups.
@@ -74,15 +74,16 @@ source .venv/bin/activate
 ```
 axonalGrowth/
 ├── pyaxon/
-│   ├── parameters.py   # all physical & numerical parameters (edit here)
-│   ├── functions.py    # helper functions (phase-field, transport, geometry)
-│   ├── main.py         # time-integration loop – run this to simulate
-│   └── plot_npz.py     # CLI tool for plots and GIFs
-├── tests/
-│   └── general.py      # unit tests
-├── docs/               # Sphinx documentation source
-├── pyproject.toml      # project metadata, dependencies, ruff & pytest config
-├── Makefile            # developer shortcuts
+│   ├── parameters.py       # fixed numerical constants (stencil, dL, …)
+│   ├── functions.py        # helper functions (phase-field, transport, geometry, YAML parser)
+│   ├── main.py             # time-integration loop – run this to simulate
+│   └── plot_npz.py         # CLI tool for plots and GIFs
+├── simulations/
+│   └── parameters.yaml     # default user-tunable parameters (edit here)
+├── tests/                  # unit tests
+├── docs/                   # Sphinx documentation source
+├── pyproject.toml          # project metadata, dependencies, ruff & pytest config
+├── Makefile                # developer shortcuts
 └── README.md
 ```
 
@@ -90,22 +91,32 @@ axonalGrowth/
 
 ## Running a simulation
 
-All parameters are in `pyaxon/parameters.py`.
-Edit that file, then run the integration loop directly:
+All user-tunable parameters live in a YAML file (see [Key parameters](#key-parameters)).
+Pass it to the simulation with `--params`:
 
 ```bash
-uv run python pyaxon/main.py
+uv run python pyaxon/main.py --params simulations/parameters.yaml
 ```
 
 Or with the virtual environment activated:
 
 ```bash
-python pyaxon/main.py
+python pyaxon/main.py --params simulations/parameters.yaml
 ```
 
-The simulation prints the current step number every `print_period` steps and
-writes compressed NumPy archives (`.npz`) to the output directory defined by
-`prefix_` at the top of `main.py` (default: `deb_4_/`).
+`--params` is **required** – the simulation will exit with an error if it is omitted.
+
+You can maintain multiple YAML files for different experiments and switch
+between them without touching any Python code:
+
+```bash
+python pyaxon/main.py --params simulations/experiment_A.yaml
+python pyaxon/main.py --params simulations/experiment_B.yaml
+```
+
+The simulation logs the current step every `print_period` steps and writes
+compressed NumPy archives (`.npz`) to the output directory defined by
+`output.prefix` in the YAML file.
 
 Each archive contains the fields:
 
@@ -128,23 +139,61 @@ a full simulation takes roughly **10–30 minutes** on a modern laptop CPU.
 
 ## Key parameters
 
-All of these live in `pyaxon/parameters.py` and are the only file you need to
-change for a parameter study.
+All user-tunable parameters are set in a YAML file
+(default: `simulations/parameters.yaml`).
+The file is organised into sections:
 
-| Parameter | Default | Description |
-|---|---|---|
-| `L` | `[40, 100]` | Grid size `[Nx, Ny]` |
-| `dt` | `0.001` | Time step. Decrease if the simulation goes unstable. |
-| `tstep` | `200000` | Total number of time steps |
-| `print_period` | `10000` | Save a snapshot every this many steps |
-| `chi` | `3.0` | Chemotactic speed coefficient |
-| `alpha_p` | `15.0` | Axon shaft proliferation rate |
-| `chi_ml` | `100.0` | MT motor transport strength. CFL: `chi_ml * dt / dL < 1` |
-| `gamma` | `10.0` | Binding rate free mRNA → linked mRNA |
-| `beta_growth_cone` | `10.0` | mRNA release rate at the growth cone tip |
-| `ngf_source_position` | `(30, 90)` | Location of the NGF point source |
-| `mtb_source` | `1.0` | Microtubule density pinned to the rail each step |
-| `prefix_` *(in main.py)* | `'deb_4_'` | Output directory for `.npz` files |
+```yaml
+grid:
+  Nx: 40        # number of grid points in x (rows)
+  Ny: 100       # number of grid points in y (columns)
+
+geometry:
+  neuron_position: [20, 20]   # [x, y] centre of the neuron soma
+  neuron_radius: 15           # soma radius (grid units)
+  gc_radius: 3                # growth-cone radius (grid units)
+  small_box_size: 15          # half-width of the chemotactic gradient window
+
+ngf:
+  source_position: [30, 90]   # [x, y] location of the NGF point source
+  source_value: 10.0          # Dirichlet injection value
+  D: 100.0                    # NGF diffusion coefficient
+
+mf:
+  source_value: 10.0          # free-mRNA injection value at the soma
+  kf: 1.0                     # free-mRNA diffusion coefficient
+  lambda_f: 0.0001            # free-mRNA decay rate
+  gamma: 10.0                 # binding rate  mf → ml
+
+ml:
+  kl: 0.5                     # linked-mRNA diffusion coefficient
+  lambda_l: 0.0001            # linked-mRNA decay rate
+  Mm: 1.0                     # MT-rail carrying capacity
+  chi_ml: 100.0               # motor transport speed  (CFL: chi_ml * dt / dL < 1)
+  beta_everywhere: 0.001      # baseline release rate along the shaft
+  beta_growth_cone: 10.0      # elevated release rate at the growth-cone tip
+
+mtb:
+  source: 1.0                 # MT density pinned to the rail each step
+  lambda_mtb: 0.1             # MT decay rate outside the rail
+  D: 0.1                      # MT diffusion coefficient
+
+growth_cone:
+  chi: 3.0                    # chemotactic speed coefficient
+  alpha_p: 15.0               # axon-shaft proliferation rate
+
+time:
+  tstep: 200000               # total number of time steps
+  dt: 0.001                   # time-step size
+  print_period: 10000         # steps between consecutive .npz snapshots
+
+output:
+  prefix: "deb_5_"            # output directory and filename prefix
+```
+
+The fixed numerical constants (`stencil`, `dL`, `alpha_`, `boundary_condition`)
+are defined in `pyaxon/parameters.py` and are not expected to be changed for
+ordinary parameter studies.
 
 ---
 

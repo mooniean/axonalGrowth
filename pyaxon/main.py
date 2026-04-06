@@ -29,77 +29,91 @@ chemotaxis, axon growth (alpha_p), and NGF re-injection are switched off so that
 the cone stops moving and the shaft stabilises.
 """
 
+import argparse
+import logging
 import os
 
 import numpy as np
 from scipy.ndimage import convolve
 
-from pyaxon.parameters import (
-    # ── Microtubules ──────────────────────────────────────────────────────────
-    D_mtb,
-    # ── NGF ───────────────────────────────────────────────────────────────────
-    D_ngf,
-    # ── Grid / numerics ───────────────────────────────────────────────────────
-    L,
-    Mm,
-    alpha_,
-    alpha_p,
-    beta_everywhere,
-    beta_growth_cone,
-    beta_m,
-    boundary_condition,
-    # ── Functions (re-exported from pyaxon.functions via parameters) ──────────
+from pyaxon.functions import (
     build_transport_field,
-    # ── Growth cone / axon ────────────────────────────────────────────────────
-    chi,
-    chi_ml,
     coeff_beta_,
     com,
     conservative_upwind_advection,
     container,
-    dL,
-    dt,
-    gamma,
-    gc_position,
-    gc_radius,
     h,
     init_cell,
     init_growth_factor,
-    # ── Free mRNA ─────────────────────────────────────────────────────────────
-    kf,
-    # ── Linked mRNA ───────────────────────────────────────────────────────────
-    kl,
-    lambda_f,
-    lambda_l,
-    lambda_mtb,
-    mf_source_position,
-    mf_source_value,
-    mtb_positions,
-    mtb_source,
-    # ── Geometry ──────────────────────────────────────────────────────────────
-    neuron_position,
-    neuron_radius,
-    ngf_source_position,
-    ngf_source_value,
-    nprint,
-    # ── Time integration ─────────────────────────────────────────────────────
-    nstep,
-    print_period,
+    parser,
     rasterized_line,
-    small_box_size,
     smoothing,
-    stencil,
-    tstep,
     unit_vector,
 )
+from pyaxon.parameters import alpha_, boundary_condition, dL, stencil
 
 if __name__ == "__main__":
+    # ── CLI ───────────────────────────────────────────────────────────────────────
+    arg_parser = argparse.ArgumentParser(description="Axonal growth / mRNA transport simulation.")
+    arg_parser.add_argument(
+        "--params",
+        required=True,
+        metavar="PATH",
+        help="Path to a parameters YAML file.",
+    )
+    args = arg_parser.parse_args()
+
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s [%(levelname)s] %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
+    logger = logging.getLogger(__name__)
+
+    logger.info("Running Axonal growth / mRNA transport simulation.")
+    # ── Load user parameters ──────────────────────────────────────────────────────
+    logger.info("Loading parameters from %s", args.params)
+    p = parser(args.params)
+
+    L = p["L"]
+    neuron_position = p["neuron_position"]
+    neuron_radius = p["neuron_radius"]
+    gc_position = p["gc_position"]
+    gc_radius = p["gc_radius"]
+    small_box_size = p["small_box_size"]
+    ngf_source_position = p["ngf_source_position"]
+    ngf_source_value = p["ngf_source_value"]
+    D_ngf = p["D_ngf"]
+    mf_source_position = p["mf_source_position"]
+    mf_source_value = p["mf_source_value"]
+    kf = p["kf"]
+    lambda_f = p["lambda_f"]
+    gamma = p["gamma"]
+    kl = p["kl"]
+    lambda_l = p["lambda_l"]
+    Mm = p["Mm"]
+    chi_ml = p["chi_ml"]
+    beta_everywhere = p["beta_everywhere"]
+    beta_growth_cone = p["beta_growth_cone"]
+    mtb_source = p["mtb_source"]
+    lambda_mtb = p["lambda_mtb"]
+    D_mtb = p["D_mtb"]
+    chi = p["chi"]
+    alpha_p = p["alpha_p"]
+    tstep = p["tstep"]
+    dt = p["dt"]
+    print_period = p["print_period"]
+    prefix = p["prefix"]
+
+    # ── Runtime state (not from YAML) ─────────────────────────────────────────────
+    nstep = 0
+    nprint = 0
+    mtb_positions = []
+    beta_m = np.zeros(L)
+
     # ── Output directory ──────────────────────────────────────────────────────────
-    prefix_ = "deb_5_"
-    os.makedirs(prefix_, exist_ok=True)
-    # ── Output directory ──────────────────────────────────────────────────────────
-    prefix_ = "deb_5_"
-    os.makedirs(prefix_, exist_ok=True)
+    os.makedirs(prefix, exist_ok=True)
+    logger.info("Output directory: %s", prefix)
 
     # ── Field allocation ──────────────────────────────────────────────────────────
     # All fields share the same 2-D grid of shape L = [Nx, Ny].
@@ -150,7 +164,9 @@ if __name__ == "__main__":
     # inside/outside the neuron before the coupled dynamics start.
     for _i in range(0, 100):
         # mf diffuses with coefficient 10 and is confined by the container potential.
-        mf = mf + dt * convolve(10 * mf + container(mf, psi, 0.0001), stencil, mode=boundary_condition)
+        mf = mf + dt * convolve(
+            10 * mf + container(mf, psi, 0.0001), stencil, mode=boundary_condition
+        )
         # NGF diffuses freely during pre-equilibration (no cone/psi present yet).
         ngf = ngf + dt * D_ngf * convolve(ngf, stencil, mode=boundary_condition)
 
@@ -197,7 +213,7 @@ if __name__ == "__main__":
             )
             if reached_now:
                 source_reached = True
-                print(f"Growth cone reached NGF source at step {nstep}")
+                logger.info("Growth cone reached NGF source at step %d", nstep)
 
         # ── Local window around the growth cone ───────────────────────────────────
         # All chemotactic gradients are computed on a small sub-domain centred on
@@ -263,7 +279,9 @@ if __name__ == "__main__":
         # using a conservative first-order upwind flux -div(flux * v_m).
         # The upwind scheme is stable for |chi_ml * v_m * dt / dL| < 1
         # (Courant–Friedrichs–Lewy condition) and exactly conserves total ml.
-        transport_ml = conservative_upwind_advection(coeff_ml * ml * mtb_effective, chi_ml * v_m, dL=dL)
+        transport_ml = conservative_upwind_advection(
+            coeff_ml * ml * mtb_effective, chi_ml * v_m, dL=dL
+        )
 
         # ── Chemotactic velocity of the growth cone ───────────────────────────────
         grad_ngf_norm = np.linalg.norm(grad_ngf, axis=0, keepdims=True)
@@ -343,7 +361,11 @@ if __name__ == "__main__":
             + dt
             * (
                 D_mtb
-                * convolve(mtb + 2 * container(mtb, psi, alpha_), stencil, mode=boundary_condition)
+                * convolve(
+                    mtb + 2 * container(mtb, psi, alpha_),
+                    stencil,
+                    mode=boundary_condition,
+                )
                 - lambda_mtb * mtb
             ),
             # ngf – Nerve Growth Factor: diffusion + consumption by the axon (psi * ngf).
@@ -403,16 +425,18 @@ if __name__ == "__main__":
             if (not source_reached) and segment.shape[0] > 1:
                 track_points.extend(tuple(point) for point in segment[1:])
                 # Rebuild flat-index list for np.put() and recompute the full v_m field.
-                mtb_positions[:] = [np.ravel_multi_index(point, mtb.shape) for point in track_points]
+                mtb_positions[:] = [
+                    np.ravel_multi_index(point, mtb.shape) for point in track_points
+                ]
                 v_m = build_transport_field(track_points, L, support_radius=0)
 
             r_cm = new_r_cm
 
         # ── I/O ───────────────────────────────────────────────────────────────────
         if nprint >= print_period:
-            print(nstep)
+            logger.info("Step %d / %d", nstep, tstep)
             np.savez(
-                prefix_ + "/" + prefix_ + str(nstep) + ".npz",
+                prefix + "/" + prefix + str(nstep) + ".npz",
                 psi=psi,
                 mtb=mtb,
                 v_m=v_m,
