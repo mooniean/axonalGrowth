@@ -27,6 +27,7 @@ Contents
 """
 
 import numpy as np
+import yaml
 from scipy.ndimage import convolve
 
 # ── Phase-field indicator functions ──────────────────────────────────────────
@@ -213,6 +214,7 @@ def container(field_1, field_2, alpha):
     return field_1 * mu * np.power(mu * (np.power(field_1, 2) + alpha), -0.5)
 
 
+@np.vectorize
 def unit_vector(vector, norm):
     """Return vector / norm if norm > 0, else 0 (vectorised element-wise).
 
@@ -223,9 +225,6 @@ def unit_vector(vector, norm):
         return vector / norm
     else:
         return 0
-
-
-unit_vector = np.vectorize(unit_vector)
 
 
 def coeff_beta_(mtb):
@@ -395,3 +394,67 @@ def conservative_upwind_advection(field, velocity, dL=1.0):
     advection[:, 1:] += flux1 / dL
 
     return advection
+
+
+# ── YAML parameter parser ─────────────────────────────────────────────────────
+
+
+def parser(path: str) -> dict:
+    """Parse *path* (a YAML file) and return all simulation parameters as a dict.
+
+    Parameters
+    ----------
+    path:
+        Absolute or relative path to a parameters YAML file.
+
+    Returns
+    -------
+    dict with keys matching the variable names used in ``main.py``.
+    """
+    with open(path) as _f:
+        _p = yaml.safe_load(_f)
+
+    L = np.array([_p["grid"]["Nx"], _p["grid"]["Ny"]])
+    neuron_position = np.array(_p["geometry"]["neuron_position"])
+    neuron_radius = _p["geometry"]["neuron_radius"]
+
+    return {
+        # ── Domain ────────────────────────────────────────────────────────────
+        "L": L,
+        # ── Geometry ──────────────────────────────────────────────────────────
+        "neuron_position": neuron_position,
+        "neuron_radius": neuron_radius,
+        "gc_radius": _p["geometry"]["gc_radius"],
+        "gc_position": np.array([neuron_position[0], neuron_position[1] + neuron_radius]),
+        "small_box_size": _p["geometry"]["small_box_size"],
+        # ── NGF ───────────────────────────────────────────────────────────────
+        "ngf_source_position": tuple(_p["ngf"]["source_position"]),
+        "ngf_source_value": _p["ngf"]["source_value"],
+        "D_ngf": _p["ngf"]["D"],
+        # ── Free mRNA ─────────────────────────────────────────────────────────
+        "mf_source_position": (int(neuron_position[0]), int(neuron_position[1])),
+        "mf_source_value": _p["mf"]["source_value"],
+        "kf": _p["mf"]["kf"],
+        "lambda_f": _p["mf"]["lambda_f"],
+        "gamma": _p["mf"]["gamma"],
+        # ── Linked mRNA ───────────────────────────────────────────────────────
+        "kl": _p["ml"]["kl"],
+        "lambda_l": _p["ml"]["lambda_l"],
+        "Mm": _p["ml"]["Mm"],
+        "chi_ml": _p["ml"]["chi_ml"],
+        "beta_everywhere": _p["ml"]["beta_everywhere"],
+        "beta_growth_cone": _p["ml"]["beta_growth_cone"],
+        # ── Microtubules ──────────────────────────────────────────────────────
+        "mtb_source": _p["mtb"]["source"],
+        "lambda_mtb": _p["mtb"]["lambda_mtb"],
+        "D_mtb": _p["mtb"]["D"],
+        # ── Growth-cone chemotaxis ─────────────────────────────────────────────
+        "chi": _p["growth_cone"]["chi"],
+        "alpha_p": _p["growth_cone"]["alpha_p"],
+        # ── Time integration ──────────────────────────────────────────────────
+        "tstep": _p["time"]["tstep"],
+        "dt": _p["time"]["dt"],
+        "print_period": _p["time"]["print_period"],
+        # ── Output ────────────────────────────────────────────────────────────
+        "prefix": _p["output"]["prefix"],
+    }

@@ -1,0 +1,55 @@
+# ── Domain ────────────────────────────────────────────────────────────────────
+grid:
+  Nx: 40      # number of grid points in x (rows)
+  Ny: 100     # number of grid points in y (columns)
+
+# ── Neuron geometry ───────────────────────────────────────────────────────────
+geometry:
+  neuron_position: [20, 20]   # [x, y] grid index of the neuron soma centre
+  neuron_radius: 15           # radius of the neuron soma (grid units)
+  gc_radius: 3                # radius of the growth cone (grid units)
+  small_box_size: 15          # half-width of the local window used for chemotactic gradient computation (grid units)
+
+# ── NGF source ────────────────────────────────────────────────────────────────
+ngf:
+  source_position: [30, 90]   # [x, y] grid index of the NGF point source
+  source_value: 10.0          # Dirichlet value injected at the NGF source each step (concentration units)
+  D: 100.0                    # NGF diffusion coefficient (grid units² / time units)
+
+# ── Free mRNA ─────────────────────────────────────────────────────────────────
+mf:
+  source_value: 10.0    # Dirichlet value injected at the soma centre each step (concentration units)
+  kf: 1.0               # free-mRNA diffusion coefficient (grid units² / time units)
+  lambda_f: 0.0001      # free-mRNA decay rate (1 / time units)
+  gamma: 10.0           # binding rate mf → ml (concentration⁻¹ · time⁻¹)
+
+# ── Linked mRNA ───────────────────────────────────────────────────────────────
+ml:
+  kl: 0.5               # MT-linked mRNA diffusion coefficient (grid units² / time units)
+  lambda_l: 0.0001      # MT-linked mRNA decay rate (1 / time units)
+  Mm: 1.0               # maximum MT-rail carrying capacity (concentration units)
+  chi_ml: 100.0         # motor transport speed of linked mRNA toward the growth cone (grid units / time units)
+  beta_everywhere: 0.001   # baseline ml → mf release rate along the axon shaft (time⁻¹)
+  beta_growth_cone: 10.0   # elevated ml → mf release rate at the growth-cone tip (time⁻¹)
+
+# ── Microtubules ──────────────────────────────────────────────────────────────
+mtb:
+  source: 1.0        # MT density value imposed on the rail each step (concentration units)
+  lambda_mtb: 0.1    # MT decay rate outside the reinforced rail (1 / time units)
+  D: 0.1             # MT diffusion coefficient (grid units² / time units)
+
+# ── Growth-cone chemotaxis ────────────────────────────────────────────────────
+growth_cone:
+  chi: 3.0      # chemotactic sensitivity: scales the NGF-gradient forcing on phi (dimensionless)
+  alpha_p: 15.0 # axon-shaft proliferation rate: NGF-driven extension of psi behind the cone (dimensionless)
+
+# ── Time integration ─────────────────────────────────────────────────────────
+time:
+  tstep: 200000       # total number of forward-Euler steps
+  dt: 0.001           # time step size (time units)
+  print_period: 10000 # number of steps between consecutive .npz snapshots
+
+# ── Output ────────────────────────────────────────────────────────────────────
+output:
+  prefix: "test_1"    # directory name and filename prefix for .npz snapshots
+
