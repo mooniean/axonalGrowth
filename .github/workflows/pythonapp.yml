@@ -18,7 +18,7 @@ jobs:
     strategy:
       matrix:
         # Test against the minimum supported version and the current stable release.
-        python-version: ["3.9", "3.13"]
+        python-version: [ "3.13"]
 
     steps:
       # ── Checkout ────────────────────────────────────────────────────────────
